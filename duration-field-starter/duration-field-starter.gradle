@@ -1,4 +1,4 @@
-archivesBaseName = 'jmix-duration-field-starter'
+archivesBaseName = 'duration-field-starter'
 
 jmix {
     entitiesEnhancing {
@@ -7,7 +7,7 @@ jmix {
 }
 
 dependencies {
-    api project(':jmix-duration-field')
+    api project(':duration-field')
 
     implementation 'io.jmix.core:jmix-core'
     implementation 'io.jmix.data:jmix-data'

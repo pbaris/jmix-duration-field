@@ -1,4 +1,4 @@
-archivesBaseName = 'jmix-duration-field'
+archivesBaseName = 'duration-field'
 
 dependencies {
     implementation 'io.jmix.core:jmix-core-starter'
