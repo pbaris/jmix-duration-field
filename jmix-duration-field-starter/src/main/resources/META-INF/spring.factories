@@ -1,1 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=  gr.netmechanics.jmix.autoconfigure.durfld.DurfldAutoConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=  gr.netmechanics.jmix.autoconfigure.df.DurationFieldAutoConfiguration

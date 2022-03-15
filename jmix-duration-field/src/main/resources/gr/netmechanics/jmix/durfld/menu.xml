@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<menu-config xmlns="http://jmix.io/schema/ui/menu">
-
-    <menu id="durfld" caption="msg://gr.netmechanics.jmix.durfld/menu.addon" insertAfter="administration">
-    </menu>
-
-</menu-config>

@@ -1,12 +1,10 @@
-package gr.netmechanics.jmix.durfld;
+package gr.netmechanics.jmix.df;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
-class DurfldTest {
+class DurationFieldTest {
 
 	@Test
 	void contextLoads() {

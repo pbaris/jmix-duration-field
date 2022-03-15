@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package gr.netmechanics.jmix.autoconfigure.durfld;
+package gr.netmechanics.jmix.autoconfigure.df;
 
-import gr.netmechanics.jmix.durfld.DurfldConfiguration;
+import gr.netmechanics.jmix.df.DurationFieldConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({DurfldConfiguration.class})
-public class DurfldAutoConfiguration {
+@Import({DurationFieldConfiguration.class})
+public class DurationFieldAutoConfiguration {
 }
 
