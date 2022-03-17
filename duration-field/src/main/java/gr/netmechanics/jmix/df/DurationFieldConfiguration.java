@@ -1,17 +1,28 @@
 package gr.netmechanics.jmix.df;
 
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import gr.netmechanics.jmix.df.ui.component.DurationField;
+import gr.netmechanics.jmix.df.ui.xml.layout.loader.DurationFieldLoader;
+import io.jmix.core.annotation.JmixModule;
+import io.jmix.ui.UiConfiguration;
+import io.jmix.ui.sys.registration.ComponentRegistration;
+import io.jmix.ui.sys.registration.ComponentRegistrationBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 /**
  * @author Panos Bariamis (pbaris)
  */
 @Configuration
 @ComponentScan
-@ConfigurationPropertiesScan
-@PropertySource(name = "gr.netmechanics.jmix.df", value = "classpath:/gr/netmechanics/jmix/df/module.properties")
+@JmixModule(dependsOn = UiConfiguration.class)
 public class DurationFieldConfiguration {
 
+    @Bean
+    public ComponentRegistration durationField() {
+        return ComponentRegistrationBuilder.create(DurationField.NAME)
+            .withComponentClass(DurationField.class)
+            .withComponentLoaderClass(DurationFieldLoader.class)
+            .build();
+    }
 }

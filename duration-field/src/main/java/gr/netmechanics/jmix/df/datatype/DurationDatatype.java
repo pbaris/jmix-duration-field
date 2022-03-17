@@ -51,10 +51,10 @@ public class DurationDatatype implements Datatype<Duration> {
             return null;
         }
 
-        Matcher m = Pattern.compile("\\s*(?:(\\d+)\\s*(?:days?|d))?" +
-                "\\s*(?:(\\d+)\\s*(?:hours?|h))?" +
-                "\\s*(?:(\\d+)\\s*(?:minutes?|m))?" +
-                "\\s*", Pattern.CASE_INSENSITIVE)
+        Matcher m = Pattern.compile("\\s*(?:(\\d+)\\s*(?:days?|d))?"
+                + "\\s*(?:(\\d+)\\s*(?:hours?|h))?"
+                + "\\s*(?:(\\d+)\\s*(?:minutes?|m))?"
+                + "\\s*", Pattern.CASE_INSENSITIVE)
             .matcher(value);
 
         if (!m.matches()) {

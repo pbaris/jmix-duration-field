@@ -17,7 +17,7 @@ public class JmixDurationField extends JmixTextField {
 
     @NonNull
     @Override
-    protected JmixDurationFieldState getState(boolean markAsDirty) {
+    protected JmixDurationFieldState getState(final boolean markAsDirty) {
         return (JmixDurationFieldState) super.getState(markAsDirty);
     }
 }

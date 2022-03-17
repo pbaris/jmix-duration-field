@@ -1,1 +1,2 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=  gr.netmechanics.jmix.autoconfigure.df.DurationFieldAutoConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  gr.netmechanics.jmix.autoconfigure.df.DurationFieldAutoConfiguration

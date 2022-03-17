@@ -38,7 +38,7 @@ public class DurationFieldImpl extends AbstractField<JmixDurationField, String, 
     }
 
     @Autowired
-    public void setDataAwareComponentsTools(DataAwareComponentsTools dataAwareComponentsTools) {
+    public void setDataAwareComponentsTools(final DataAwareComponentsTools dataAwareComponentsTools) {
         this.dataAwareComponentsTools = dataAwareComponentsTools;
     }
 
@@ -47,7 +47,7 @@ public class DurationFieldImpl extends AbstractField<JmixDurationField, String, 
         initComponent(component);
     }
 
-    protected void initComponent(JmixDurationField component) {
+    protected void initComponent(final JmixDurationField component) {
         component.setValueChangeMode(ValueChangeMode.BLUR);
     }
 
