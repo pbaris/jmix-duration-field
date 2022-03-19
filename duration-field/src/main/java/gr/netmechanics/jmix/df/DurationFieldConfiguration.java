@@ -1,6 +1,7 @@
 package gr.netmechanics.jmix.df;
 
 import gr.netmechanics.jmix.df.ui.component.DurationField;
+import gr.netmechanics.jmix.df.ui.component.impl.DurationFieldImpl;
 import gr.netmechanics.jmix.df.ui.xml.layout.loader.DurationFieldLoader;
 import io.jmix.core.annotation.JmixModule;
 import io.jmix.ui.UiConfiguration;
@@ -21,7 +22,7 @@ public class DurationFieldConfiguration {
     @Bean
     public ComponentRegistration durationField() {
         return ComponentRegistrationBuilder.create(DurationField.NAME)
-            .withComponentClass(DurationField.class)
+            .withComponentClass(DurationFieldImpl.class)
             .withComponentLoaderClass(DurationFieldLoader.class)
             .build();
     }

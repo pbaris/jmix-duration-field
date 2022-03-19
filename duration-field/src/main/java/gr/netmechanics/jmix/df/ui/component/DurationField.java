@@ -20,6 +20,8 @@ import io.jmix.ui.meta.StudioProperty;
     caption = "DurationField",
     category = "Components",
     xmlElement = "durationField",
+    xmlns = "http://schemas.netmechanics.gr/jmix/ui",
+    xmlnsAlias = "nm",
     icon = "gr/netmechanics/jmix/df/ui/icon/component/durationField.svg",
     canvasBehaviour = CanvasBehaviour.INPUT_FIELD
 )
