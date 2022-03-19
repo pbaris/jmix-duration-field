@@ -111,8 +111,7 @@ public class DurationFieldImpl extends AbstractField<JmixDurationField, String, 
     }
 
     protected String getConversionErrorMessage() {
-        Messages messages = applicationContext.getBean(Messages.class);
-        return messages.getMessage("databinding.conversion.error");
+        return applicationContext.getBean(Messages.class).getMessage("databinding.conversion.error");
     }
 
     @Override

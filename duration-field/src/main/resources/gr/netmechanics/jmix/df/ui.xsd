@@ -14,8 +14,9 @@
 				<xs:sequence>
 					<xs:element name="validators" minOccurs="0" type="layout:constraintValidatorType"/>
 				</xs:sequence>
+				<xs:attribute name="inputPrompt" type="layout:resourceString"/>
+
 				<xs:attributeGroup ref="layout:hasBuffered"/>
-				<xs:attributeGroup ref="layout:hasDatatype"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
