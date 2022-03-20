@@ -8,7 +8,7 @@ buildscript {
 }
 
 group = 'gr.netmechanics.jmix'
-version = '0.0.11-SNAPSHOT'
+version = '1.0.0'
 
 subprojects {
     apply plugin: 'java-library'
@@ -43,15 +43,20 @@ subprojects {
         archives sourcesJar
     }
 
+    ext {
+        isReleaseVersion = !version.endsWith("SNAPSHOT")
+    }
+
     publishing {
         repositories {
             maven {
-                url = 'https://myrepo/releases/'
+                def releaseRepo = "https://s01.oss.sonatype.org/content/repositories/releases/"
+                def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                url = isReleaseVersion ? releaseRepo : snapshotRepo
                 credentials {
-                    username rootProject.hasProperty('uploadUser') ? rootProject['uploadUser'] : 'admin'
-                    password rootProject.hasProperty('uploadPassword') ? rootProject['uploadPassword'] : 'admin'
+                    username = rootProject.hasProperty('ossrhUsername') ? rootProject['ossrhUsername'] : "Unknown"
+                    password = rootProject.hasProperty('ossrhPassword') ? rootProject['ossrhPassword'] : "Unknown"
                 }
-                allowInsecureProtocol = true
             }
         }
         publications {
