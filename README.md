@@ -2,7 +2,11 @@
 
 # Jmix Duration Field
 
-This add-on provides support for the `java.time.Duration` data type through a specific UI component.
+This add-on provides support for the `java.time.Duration` data type through a specific UI component, by converting the type in a human redable format.
+
+![](./docs/preview1.png)
+
+![](./docs/preview2.png)
 
 ## Installation
 
@@ -17,7 +21,7 @@ Add to your project's `build.gradle` dependencies:
 ```gradle
 implementation 'gr.netmechanics.jmix:duration-field-starter:1.0.0'
 ```
-## How to use the addon
+## How to use the add-on
 
 When you define an entity attribute of `java.time.Duration` type, the framework will use the custom JPA converter and datatype provided by the add-on
 
