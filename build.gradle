@@ -10,6 +10,8 @@ buildscript {
 group = 'gr.netmechanics.jmix'
 version = '1.0.0'
 
+if (!hasProperty('buildProfile')) ext.buildProfile = 'default'
+
 subprojects {
     apply plugin: 'java-library'
     apply plugin: 'maven-publish'
@@ -48,17 +50,8 @@ subprojects {
     }
 
     publishing {
-        repositories {
-            maven {
-                def releaseRepo = "https://s01.oss.sonatype.org/content/repositories/releases/"
-                def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                url = isReleaseVersion ? releaseRepo : snapshotRepo
-                credentials {
-                    username = rootProject.hasProperty('ossrhUsername') ? rootProject['ossrhUsername'] : "Unknown"
-                    password = rootProject.hasProperty('ossrhPassword') ? rootProject['ossrhPassword'] : "Unknown"
-                }
-            }
-        }
+        apply from: "../profile-${buildProfile}.gradle"
+
         publications {
             javaMaven(MavenPublication) {
                 artifactId = archName

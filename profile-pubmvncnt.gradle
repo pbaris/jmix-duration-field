@@ -1,0 +1,11 @@
+repositories {
+    maven {
+        def releaseRepo = "https://s01.oss.sonatype.org/content/repositories/releases/"
+        def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+        url = isReleaseVersion ? releaseRepo : snapshotRepo
+        credentials {
+            username = rootProject.hasProperty('ossrhUsername') ? rootProject['ossrhUsername'] : "Unknown"
+            password = rootProject.hasProperty('ossrhPassword') ? rootProject['ossrhPassword'] : "Unknown"
+        }
+    }
+}
