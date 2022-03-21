@@ -9,8 +9,6 @@ buildscript {
 
 group = 'gr.netmechanics.jmix'
 
-if (!hasProperty('buildProfile')) ext.buildProfile = 'default'
-
 subprojects {
     apply plugin: 'java-library'
     apply plugin: 'maven-publish'
