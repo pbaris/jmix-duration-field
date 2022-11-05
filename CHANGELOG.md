@@ -1,3 +1,7 @@
+## [1.4.0] - 2022-11-05
+
+- DurationField for Jmix 1.4.0
+
 ## [1.3.1] - 2022-07-01
 
 - DurationField for Jmix 1.3.0
