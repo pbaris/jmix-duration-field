@@ -3,12 +3,11 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'io.jmix.gradle:jmix-gradle-plugin:1.5.0'
+        classpath "io.jmix.gradle:jmix-gradle-plugin:2.2.0.1"
     }
 }
 
 group = 'gr.netmechanics.jmix'
-version = '1.5.0'
 
 subprojects {
     apply plugin: 'java-library'
@@ -18,12 +17,12 @@ subprojects {
     repositories {
         mavenCentral()
         maven {
-            url 'https://global.repo.jmix.io/repository/public'
+            url 'https://nexus.jmix.io/repository/public'
         }
     }
 
     jmix {
-        bomVersion = '1.5.0'
+        bomVersion = '2.2.1'
         projectId = 'durfld'
     }
 
@@ -43,19 +42,14 @@ subprojects {
         archives sourcesJar
     }
 
-    ext {
-        isReleaseVersion = !version.endsWith("SNAPSHOT")
-    }
-
     publishing {
         repositories {
             maven {
-                def releaseRepo = "https://s01.oss.sonatype.org/content/repositories/releases/"
-                def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                url = isReleaseVersion ? releaseRepo : snapshotRepo
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/" + System.getenv("GITHUB_REPOSITORY"))
                 credentials {
-                    username = rootProject.hasProperty('ossrhUsername') ? rootProject['ossrhUsername'] : "Unknown"
-                    password = rootProject.hasProperty('ossrhPassword') ? rootProject['ossrhPassword'] : "Unknown"
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
@@ -70,5 +64,10 @@ subprojects {
     // remove after https://youtrack.jetbrains.com/issue/IDEA-227215 is fixed
     tasks.withType(GenerateModuleMetadata) {
         enabled = false
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs.add("-parameters")
     }
 }

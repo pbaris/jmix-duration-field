@@ -2,8 +2,8 @@ package gr.netmechanics.jmix.df.datatype;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 /**
  * @author Panos Bariamis (pbaris)
