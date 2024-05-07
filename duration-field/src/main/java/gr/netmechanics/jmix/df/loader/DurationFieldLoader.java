@@ -36,10 +36,8 @@ public class DurationFieldLoader extends AbstractComponentLoader<DurationField> 
         componentLoader().loadValidationAttributes(resultComponent, element, context);
         componentLoader().loadAriaLabel(resultComponent, element);
 
-
-        final Messages messages = applicationContext.getBean(Messages.class);
-
-        resultComponent.setTooltipText(messages.getMessage("gr.netmechanics.jmix.durationField/help"));
+        resultComponent.setTooltipText(applicationContext.getBean(Messages.class)
+            .getMessage("gr.netmechanics.jmix.durationField/help"));
     }
 
     protected DataLoaderSupport getDataLoaderSupport() {
