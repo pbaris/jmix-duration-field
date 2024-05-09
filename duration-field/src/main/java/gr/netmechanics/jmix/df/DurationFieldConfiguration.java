@@ -1,7 +1,6 @@
 package gr.netmechanics.jmix.df;
 
 import gr.netmechanics.jmix.df.component.DurationField;
-import gr.netmechanics.jmix.df.loader.DurationFieldLoader;
 import io.jmix.core.annotation.JmixModule;
 import io.jmix.flowui.FlowuiConfiguration;
 import io.jmix.flowui.sys.registration.ComponentRegistration;
