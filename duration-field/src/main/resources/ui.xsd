@@ -15,14 +15,17 @@
 					<xs:element name="tooltip" type="layout:tooltipElement"/>
 				</xs:choice>
 
+				<xs:attribute name="maxLength" type="xs:integer"/>
+				<xs:attribute name="minLength" type="xs:integer"/>
 				<xs:attribute name="clearButtonVisible" type="xs:boolean"/>
 				<xs:attribute name="themeNames" type="layout:textFieldThemeNames"/>
 
-				<xs:attributeGroup ref="layout:hasAutocomplete"/>
 				<xs:attributeGroup ref="layout:hasTitle"/>
 				<xs:attributeGroup ref="layout:hasPlaceholder"/>
+				<xs:attributeGroup ref="layout:hasAutocomplete"/>
 				<xs:attributeGroup ref="layout:hasFocusableAttributes"/>
 				<xs:attributeGroup ref="layout:hasAriaLabel"/>
+				<xs:attributeGroup ref="layout:hasDataContainer"/>
 				<xs:attributeGroup ref="layout:hasRequired"/>
 			</xs:extension>
 		</xs:complexContent>

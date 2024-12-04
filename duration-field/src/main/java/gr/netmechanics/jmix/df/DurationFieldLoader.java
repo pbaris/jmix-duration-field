@@ -1,7 +1,6 @@
 package gr.netmechanics.jmix.df;
 
 import gr.netmechanics.jmix.df.component.DurationField;
-import io.jmix.core.Messages;
 import io.jmix.flowui.xml.layout.loader.AbstractComponentLoader;
 import io.jmix.flowui.xml.layout.support.DataLoaderSupport;
 import org.springframework.lang.NonNull;
@@ -23,24 +22,22 @@ public class DurationFieldLoader extends AbstractComponentLoader<DurationField> 
     public void loadComponent() {
         getDataLoaderSupport().loadData(resultComponent, element);
 
-        componentLoader().loadSizeAttributes(resultComponent, element);
+        loadBoolean(element, "clearButtonVisible", resultComponent::setClearButtonVisible);
+        loadResourceString(element, "title", context.getMessageGroup(), resultComponent::setTitle);
+
+        componentLoader().loadPlaceholder(resultComponent, element);
         componentLoader().loadLabel(resultComponent, element);
         componentLoader().loadEnabled(resultComponent, element);
+        componentLoader().loadTooltip(resultComponent, element);
+        componentLoader().loadFocusableAttributes(resultComponent, element);
+        componentLoader().loadThemeNames(resultComponent, element);
         componentLoader().loadClassNames(resultComponent, element);
         componentLoader().loadHelperText(resultComponent, element);
-        componentLoader().loadValueAndElementAttributes(resultComponent, element);
-
-        componentLoader().loadThemeNames(resultComponent, element);
-
         componentLoader().loadAutocomplete(resultComponent, element);
-        componentLoader().loadTitle(resultComponent, element, context);
-        componentLoader().loadPlaceholder(resultComponent, element);
-        componentLoader().loadFocusableAttributes(resultComponent, element);
         componentLoader().loadAriaLabel(resultComponent, element);
+        componentLoader().loadSizeAttributes(resultComponent, element);
         componentLoader().loadRequired(resultComponent, element, context);
-        componentLoader().loadTooltip(resultComponent, element);
-
-        getLoaderSupport().loadBoolean(element, "clearButtonVisible", resultComponent::setClearButtonVisible);
+        componentLoader().loadValueAndElementAttributes(resultComponent, element);
     }
 
     protected DataLoaderSupport getDataLoaderSupport() {
