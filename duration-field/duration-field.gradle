@@ -2,17 +2,20 @@ archivesBaseName = 'duration-field'
 
 dependencies {
     implementation 'io.jmix.core:jmix-core-starter'
-    implementation 'io.jmix.ui:jmix-ui-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-themes'
 
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     testImplementation 'org.springframework.boot:spring-boot-starter-web'
+}
 
+configurations.implementation {
+    exclude group: 'com.vaadin', module: 'hilla'
+    exclude group: 'com.vaadin', module: 'hilla-dev'
 }
 
 test {
     useJUnitPlatform()
 }
-
-version = '1.5.0'

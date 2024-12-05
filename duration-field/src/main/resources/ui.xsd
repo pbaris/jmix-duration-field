@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns="http://schemas.netmechanics.gr/jmix/ui"
+		   attributeFormDefault="unqualified"
+		   elementFormDefault="qualified"
+		   targetNamespace="http://schemas.netmechanics.gr/jmix/ui"
+		   xmlns:layout="http://jmix.io/schema/flowui/layout"
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<xs:element name="durationField" type="durationFieldComponent"/>
+
+	<xs:complexType name="durationFieldComponent">
+		<xs:complexContent>
+			<xs:extension base="layout:baseFieldComponent">
+				<xs:choice minOccurs="0">
+					<xs:element name="tooltip" type="layout:tooltipElement"/>
+					<xs:element name="prefix" minOccurs="0" type="layout:prefixOrSuffixComponent"/>
+					<xs:element name="suffix" minOccurs="0" type="layout:prefixOrSuffixComponent"/>
+				</xs:choice>
+
+				<xs:attribute name="maxLength" type="xs:integer"/>
+				<xs:attribute name="minLength" type="xs:integer"/>
+				<xs:attribute name="clearButtonVisible" type="xs:boolean"/>
+				<xs:attribute name="themeNames" type="layout:textFieldThemeNames"/>
+
+				<xs:attributeGroup ref="layout:hasTitle"/>
+				<xs:attributeGroup ref="layout:hasPlaceholder"/>
+				<xs:attributeGroup ref="layout:hasAutocomplete"/>
+				<xs:attributeGroup ref="layout:hasFocusableAttributes"/>
+				<xs:attributeGroup ref="layout:hasAriaLabel"/>
+				<xs:attributeGroup ref="layout:hasDataContainer"/>
+				<xs:attributeGroup ref="layout:hasRequired"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+</xs:schema>
