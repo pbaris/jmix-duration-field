@@ -4,7 +4,7 @@
 
 This add-on provides support for the `java.time.Duration` datatype and a related field, by converting the datatype in a human-readable format.
 
-![](./docs/preview1.png)
+![](./docs/preview.png)
 
 ## Installation
 
