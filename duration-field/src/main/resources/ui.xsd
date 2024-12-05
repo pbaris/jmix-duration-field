@@ -13,6 +13,8 @@
 			<xs:extension base="layout:baseFieldComponent">
 				<xs:choice minOccurs="0">
 					<xs:element name="tooltip" type="layout:tooltipElement"/>
+					<xs:element name="prefix" minOccurs="0" type="layout:prefixOrSuffixComponent"/>
+					<xs:element name="suffix" minOccurs="0" type="layout:prefixOrSuffixComponent"/>
 				</xs:choice>
 
 				<xs:attribute name="maxLength" type="xs:integer"/>

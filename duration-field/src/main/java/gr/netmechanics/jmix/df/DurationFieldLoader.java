@@ -3,6 +3,7 @@ package gr.netmechanics.jmix.df;
 import gr.netmechanics.jmix.df.component.DurationField;
 import io.jmix.flowui.xml.layout.loader.AbstractComponentLoader;
 import io.jmix.flowui.xml.layout.support.DataLoaderSupport;
+import io.jmix.flowui.xml.layout.support.PrefixSuffixLoaderSupport;
 import org.springframework.lang.NonNull;
 
 /**
@@ -10,7 +11,8 @@ import org.springframework.lang.NonNull;
  */
 public class DurationFieldLoader extends AbstractComponentLoader<DurationField> {
 
-    protected DataLoaderSupport dataLoaderSupport;
+    private DataLoaderSupport dataLoaderSupport;
+    private PrefixSuffixLoaderSupport prefixSuffixLoaderSupport;
 
     @Override
     @NonNull
@@ -19,8 +21,15 @@ public class DurationFieldLoader extends AbstractComponentLoader<DurationField> 
     }
 
     @Override
+    public void initComponent() {
+        super.initComponent();
+        getPrefixSuffixLoaderSupport().createPrefixSuffixComponents(resultComponent, element);
+    }
+
+    @Override
     public void loadComponent() {
         getDataLoaderSupport().loadData(resultComponent, element);
+        getPrefixSuffixLoaderSupport().loadPrefixSuffixComponents();
 
         loadBoolean(element, "clearButtonVisible", resultComponent::setClearButtonVisible);
         loadResourceString(element, "title", context.getMessageGroup(), resultComponent::setTitle);
@@ -40,10 +49,17 @@ public class DurationFieldLoader extends AbstractComponentLoader<DurationField> 
         componentLoader().loadValueAndElementAttributes(resultComponent, element);
     }
 
-    protected DataLoaderSupport getDataLoaderSupport() {
+    private DataLoaderSupport getDataLoaderSupport() {
         if (dataLoaderSupport == null) {
             dataLoaderSupport = applicationContext.getBean(DataLoaderSupport.class, context);
         }
         return dataLoaderSupport;
+    }
+
+    private PrefixSuffixLoaderSupport getPrefixSuffixLoaderSupport() {
+        if (prefixSuffixLoaderSupport == null) {
+            prefixSuffixLoaderSupport = applicationContext.getBean(PrefixSuffixLoaderSupport.class, context);
+        }
+        return prefixSuffixLoaderSupport;
     }
 }
