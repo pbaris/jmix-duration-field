@@ -1,4 +1,8 @@
-## [1.5.0] - 2024-12-04
+## [2.4.0] - 2025-02-14
+
+- Compatibility with Jmix 2.5
+
+## [2.0.0] - 2024-12-04
 
 - DurationField for Jmix 2.4.1
 

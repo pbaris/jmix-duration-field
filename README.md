@@ -17,7 +17,8 @@ The following table shows which version of the add-on is compatible with which v
 | 1.3.0        | 1.3.1          | gr.netmechanics.jmix:duration-field-starter:1.3.1 |
 | 1.4.0        | 1.4.0          | gr.netmechanics.jmix:duration-field-starter:1.4.0 |
 | 1.5.0        | 1.5.0          | gr.netmechanics.jmix:duration-field-starter:1.5.0 |
-| 2.4.1        | 2.0.0          | gr.netmechanics.jmix:duration-field-starter:2.0.0 |
+| 2.4.x        | 2.0.0          | gr.netmechanics.jmix:duration-field-starter:2.0.0 |
+| 2.5.x        | 2.1.0          | gr.netmechanics.jmix:duration-field-starter:2.1.0 |
 
 For manual installation, add the following dependencies to your `build.gradle`:
 
