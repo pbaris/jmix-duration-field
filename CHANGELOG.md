@@ -1,4 +1,4 @@
-## [2.4.6] - 2026-06-10
+## [2.5.0] - 2026-06-10
 
 - Added support for long labels in duration formatting
 
