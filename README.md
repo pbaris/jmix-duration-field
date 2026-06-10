@@ -64,3 +64,10 @@ or through code
     </layout>
 </view>
 ```
+### Configuration
+
+The add-on provides the following configuration properties:
+
+| Property                         | Default | Description                                        |
+|----------------------------------|---------|----------------------------------------------------|
+| `jmix.durationField.shortLabels` | `true`  | Whether to use short labels for the duration field |

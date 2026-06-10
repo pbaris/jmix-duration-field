@@ -1,4 +1,4 @@
-package playground;
+package gr.netmechanics.jmix.df;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ public final class DurationFormatter {
      * @param duration the duration to format; must not be {@code null}
      * @return a human-readable string, or "0ms" for zero / negative durations
      */
-    public static String format(Duration duration) {
+    public static String format(final Duration duration) {
         return format(duration, true);
     }
 
@@ -77,11 +77,11 @@ public final class DurationFormatter {
      *                    {@code false} for full words (year(s), month(s), ...)
      * @return a human-readable string, or "0ms" / "0 milliseconds" for
      *         zero / negative durations
-     * @throws IllegalArgumentException if {@code duration} is {@code null}
      */
-    public static String format(Duration duration, boolean shortLabels) {
+    @SuppressWarnings({"checkstyle:NeedBraces", "checkstyle:VariableDeclarationUsageDistance"})
+    public static String format(final Duration duration, final boolean shortLabels) {
         if (duration == null) {
-            throw new IllegalArgumentException("duration must not be null");
+            return "";
         }
 
         long totalMillis = duration.toMillis();
@@ -133,11 +133,10 @@ public final class DurationFormatter {
      *
      * @param input the string to parse; must not be {@code null}
      * @return the resulting {@link Duration}
-     * @throws IllegalArgumentException if the input is null or cannot be parsed
      */
-    public static Duration parse(String input) {
+    public static Duration parse(final String input) {
         if (input == null || input.trim().isEmpty()) {
-            throw new IllegalArgumentException("Input string must not be null or empty");
+            return null;
         }
 
         long totalMillis = 0;
@@ -182,6 +181,9 @@ public final class DurationFormatter {
                 case "millisecond":
                     totalMillis += value;
                     break;
+                default:
+                    totalMillis += 0;
+                    break;
             }
         }
 
@@ -201,7 +203,7 @@ public final class DurationFormatter {
      * @param shortLabels {@code true} to use the short form
      * @return the formatted label string
      */
-    private static String label(long value, String shortForm, String longForm, boolean shortLabels) {
+    private static String label(final long value, final String shortForm, final String longForm, final boolean shortLabels) {
         if (shortLabels) {
             return value + shortForm;
         }

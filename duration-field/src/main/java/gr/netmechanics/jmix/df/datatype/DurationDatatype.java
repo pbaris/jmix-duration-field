@@ -1,6 +1,5 @@
 package gr.netmechanics.jmix.df.datatype;
 
-import java.text.ParseException;
 import java.time.Duration;
 import java.util.Locale;
 import javax.annotation.Nonnull;
@@ -10,6 +9,7 @@ import gr.netmechanics.jmix.df.DurationFormatter;
 import io.jmix.core.metamodel.annotation.DatatypeDef;
 import io.jmix.core.metamodel.annotation.Ddl;
 import io.jmix.core.metamodel.datatype.Datatype;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Panos Bariamis (pbaris)
@@ -18,15 +18,8 @@ import io.jmix.core.metamodel.datatype.Datatype;
 @Ddl("bigint")
 public class DurationDatatype implements Datatype<Duration> {
 
-    private final boolean shortLabels;
-
-    public DurationDatatype() {
-        this.shortLabels = true;
-    }
-
-    public DurationDatatype(final boolean shortLabels) {
-        this.shortLabels = shortLabels;
-    }
+    @Value("${jmix.durationField.shortLabels:true}")
+    private boolean shortLabels;
 
     @Nonnull
     @Override
@@ -46,13 +39,13 @@ public class DurationDatatype implements Datatype<Duration> {
 
     @Nullable
     @Override
-    public Duration parse(@Nullable final String value) throws ParseException {
+    public Duration parse(@Nullable final String value) {
         return DurationFormatter.parse(value);
     }
 
     @Nullable
     @Override
-    public Duration parse(@Nullable final String value, @Nonnull final Locale locale) throws ParseException {
+    public Duration parse(@Nullable final String value, @Nonnull final Locale locale) {
         return parse(value);
     }
 }
