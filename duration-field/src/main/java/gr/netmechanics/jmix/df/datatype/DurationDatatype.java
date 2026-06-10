@@ -6,11 +6,10 @@ import java.util.Locale;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import gr.netmechanics.jmix.df.DurationTransformations;
+import gr.netmechanics.jmix.df.DurationFormatter;
 import io.jmix.core.metamodel.annotation.DatatypeDef;
 import io.jmix.core.metamodel.annotation.Ddl;
 import io.jmix.core.metamodel.datatype.Datatype;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Panos Bariamis (pbaris)
@@ -19,14 +18,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Ddl("bigint")
 public class DurationDatatype implements Datatype<Duration> {
 
-    @Autowired
-    private DurationTransformations transformations;
+    private final boolean shortLabels;
+
+    public DurationDatatype() {
+        this.shortLabels = true;
+    }
+
+    public DurationDatatype(final boolean shortLabels) {
+        this.shortLabels = shortLabels;
+    }
 
     @Nonnull
     @Override
     public String format(@Nullable final Object value) {
         if (value instanceof Duration duration) {
-            return transformations.transformToString(duration);
+            return DurationFormatter.format(duration, shortLabels);
         }
 
         return "";
@@ -41,7 +47,7 @@ public class DurationDatatype implements Datatype<Duration> {
     @Nullable
     @Override
     public Duration parse(@Nullable final String value) throws ParseException {
-        return transformations.transformToDuration(value);
+        return DurationFormatter.parse(value);
     }
 
     @Nullable
