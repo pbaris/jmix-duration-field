@@ -1,4 +1,6 @@
-archivesBaseName = 'duration-field-starter'
+base {
+    archivesName = 'duration-field-starter'
+}
 
 jmix {
     entitiesEnhancing {

@@ -3,7 +3,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'io.jmix.gradle:jmix-gradle-plugin:2.8.0'
+        classpath 'io.jmix.gradle:jmix-gradle-plugin:3.0.0'
     }
 }
 
@@ -22,17 +22,13 @@ subprojects {
     }
 
     jmix {
-        bomVersion = '2.8.0'
+        bomVersion = '3.0.0'
         projectId = 'durfld'
     }
 
     group = this.group
     version = this.version
 
-    def props = new Properties()
-    buildFile.withInputStream { props.load(it) }
-    def subArchivesBaseName = props.getProperty('archivesBaseName')
-    def archName = subArchivesBaseName.substring(1, subArchivesBaseName.length() - 1)
 
     java {
         withSourcesJar()
@@ -42,32 +38,34 @@ subprojects {
         archives sourcesJar
     }
 
-    publishing {
-        repositories {
-            if (project.hasProperty("nexus_username")) {
-                maven {
-                    name = "NetmechanicsNexus"
-                    url = 'https://nexus.nmlabs.gr/repository/m2public/'
-                    credentials {
-                        username = "${nexus_username}"
-                        password = "${nexus_password}"
+    afterEvaluate {
+        publishing {
+            repositories {
+                if (project.hasProperty("nexus_username")) {
+                    maven {
+                        name = "NetmechanicsNexus"
+                        url = 'https://nexus.nmlabs.gr/repository/m2public/'
+                        credentials {
+                            username = "${nexus_username}"
+                            password = "${nexus_password}"
+                        }
                     }
-                }
-            } else {
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/" + System.getenv("GITHUB_REPOSITORY"))
-                    credentials {
-                        username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
-                        password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                } else {
+                    maven {
+                        name = "GitHubPackages"
+                        url = uri("https://maven.pkg.github.com/" + System.getenv("GITHUB_REPOSITORY"))
+                        credentials {
+                            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+                            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                        }
                     }
                 }
             }
-        }
-        publications {
-            javaMaven(MavenPublication) {
-                artifactId = archName
-                from components.java
+            publications {
+                javaMaven(MavenPublication) {
+                    artifactId = project.base.archivesName.get()
+                    from components.java
+                }
             }
         }
     }

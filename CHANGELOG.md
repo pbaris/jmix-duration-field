@@ -1,3 +1,7 @@
+## [3.0.0] - 2026-07-02
+
+- Compatibility with Jmix 3.0
+
 ## [2.5.0] - 2026-06-10
 
 - Added support for long labels in duration formatting
