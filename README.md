@@ -69,6 +69,8 @@ or through code
 
 The add-on provides the following configuration properties:
 
-| Property                         | Default | Description                                        |
-|----------------------------------|---------|----------------------------------------------------|
-| `jmix.durationField.shortLabels` | `true`  | Whether to use short labels for the duration field |
+| Property                             | Default | Description                                                                                                                               |
+|---------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `jmix.durationField.shortLabels`     | `true`  | Whether to use short labels for the duration field                                                                                        |
+| `jmix.durationField.hoursADay`       | `8`     | Working hours in a day (e.g. `7.5`), used to convert between hours and days/weeks/months/years                                           |
+| `jmix.durationField.alwaysDisplayIn` | (none)  | When set (e.g. `days`, `hours`, `weeks`), the field always displays the whole duration as a single decimal number in that unit (e.g. `3.75d`) instead of a multi-part breakdown |

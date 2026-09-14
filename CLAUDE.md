@@ -35,8 +35,8 @@ Two Gradle subprojects, wired together in `settings.gradle` (build files are nam
 
 ### How the pieces connect
 
-1. **`DurationFormatter`** (`duration-field/.../df/DurationFormatter.java`) — pure, stateless formatting/parsing logic. Converts `Duration` ↔ human-readable strings using Jira-style working-time units (1 day = 8h, 1 week = 5 days, 1 month = 4 weeks, 1 year = 12 months). Supports `shortLabels` (`1d 1h`) vs long labels (`1 day 1 hour`). This is the one class with real business logic and the most likely place to need edits/tests when changing formatting behavior.
-2. **`DurationDatatype`** (`.../datatype/DurationDatatype.java`) — implements Jmix's `Datatype<Duration>` (`@DatatypeDef(id = "duration", defaultForClass = true)`, `@Ddl("bigint")`), delegating to `DurationFormatter`. Reads the `jmix.durationField.shortLabels` config property (default `true`) via `@Value`. This is what makes `Duration` a first-class Jmix attribute type usable directly from Studio.
+1. **`DurationFormatter`** (`duration-field/.../df/DurationFormatter.java`) — pure, stateless formatting/parsing logic. Converts `Duration` ↔ human-readable strings using Jira-style working-time units (1 day = configurable working hours, default 8h; 1 week = 5 days, 1 month = 4 weeks, 1 year = 12 months). Supports `shortLabels` (`1d 1h`) vs long labels (`1 day 1 hour`), a configurable `hoursADay`, and an optional `alwaysDisplayIn` unit that forces the whole duration into a single decimal value (e.g. `3.75d`) instead of a multi-part breakdown. Labels/aliases live in the `DurationUnit` enum (`.../df/DurationUnit.java`). This is the one class with real business logic and the most likely place to need edits/tests when changing formatting behavior.
+2. **`DurationDatatype`** (`.../datatype/DurationDatatype.java`) — implements Jmix's `Datatype<Duration>` (`@DatatypeDef(id = "duration", defaultForClass = true)`, `@Ddl("bigint")`), delegating to `DurationFormatter`. Reads `jmix.durationField.shortLabels` (default `true`), `jmix.durationField.hoursADay` (default `8`), and `jmix.durationField.alwaysDisplayIn` (default unset) via `@Value`. This is what makes `Duration` a first-class Jmix attribute type usable directly from Studio.
 3. **`DurationConverter`** (`.../datatype/DurationConverter.java`) — JPA `AttributeConverter<Duration, Long>` (`@Converter(autoApply = true)`), storing durations as millisecond `bigint` columns in the DB.
 4. **`DurationField`** (`.../component/DurationField.java`) — the Flow-UI component, a thin `TypedTextField<Duration>` subclass.
 5. **`DurationFieldLoader`** (`.../DurationFieldLoader.java`) — XML layout loader for `<nm:durationField>`, wiring up standard Flow-UI attributes (label, placeholder, required, sizing, etc.) plus the field-specific `clearButtonVisible` and `title`.
@@ -47,6 +47,8 @@ Two Gradle subprojects, wired together in `settings.gradle` (build files are nam
 
 When changing parsing/formatting rules, `DurationFormatter` is the single source of truth used by both display (`DurationDatatype.format`) and DB round-tripping is separate (`DurationConverter` always uses raw millis, unaffected by label formatting).
 
-## Configuration property
+## Configuration properties
 
 - `jmix.durationField.shortLabels` (boolean, default `true`) — read by `DurationDatatype`; also exposed as a `shortLabels` XML attribute on the component itself (loader currently does not read a per-instance override for it — check `DurationFieldLoader`/`DurationField` before assuming per-field override works).
+- `jmix.durationField.hoursADay` (double, default `8`) — working hours in a day; drives the day/week/month/year breakdown in both `DurationFormatter.format` and `.parse`. Global only, no per-field override.
+- `jmix.durationField.alwaysDisplayIn` (string, default unset) — when set (e.g. `days`, `hours`; same aliases `DurationUnit.fromAlias` accepts, case-insensitive), forces `format()` to render the whole duration as a single decimal number in that unit instead of the multi-part breakdown. Global only, no per-field override. Does not affect `parse()` — input is still typed as multi-unit values (e.g. `"30h"`).
