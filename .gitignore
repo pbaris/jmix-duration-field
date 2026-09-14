@@ -16,3 +16,11 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Claude ###
+.claude/skills
+.skills
+
+.wolf/
+!.wolf/cerebrum.md
+!.wolf/config.json
