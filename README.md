@@ -2,7 +2,7 @@
 
 # Duration Field for Jmix
 
-This add-on provides support for the `java.time.Duration` datatype and a related field, by converting the datatype in a human-readable format.
+This add-on provides support for the `java.time.Duration` datatype and a related field, displaying durations in a human-readable format (e.g. `1d 6h` instead of a raw number of milliseconds). It's built for timesheet, planning, and invoicing apps: you can set how many hours make up a working day for each customer, and choose to always show durations in one consistent unit — like days — no matter how they were entered.
 
 ![](./docs/preview.png)
 
@@ -75,7 +75,7 @@ The add-on provides the following configuration properties:
 | `jmix.durationField.hoursADay`       | `8`     | Working hours in a day (e.g. `7.5`), used to convert between hours and days/weeks/months/years                                           |
 | `jmix.durationField.alwaysDisplayIn` | (none)  | When set (e.g. `days`, `hours`, `weeks`), the field always displays the whole duration as a single decimal number in that unit (e.g. `3.75d`) instead of a multi-part breakdown |
 
-Set them in your app's `application.properties` (or `.yml`):
+You set them once for your app, in `application.properties`:
 
 ```properties
 jmix.durationField.shortLabels=true
@@ -83,38 +83,20 @@ jmix.durationField.hoursADay=7.5
 jmix.durationField.alwaysDisplayIn=days
 ```
 
-#### `hoursADay` — customer-specific working day length
+#### How many hours are in a working day?
 
-By default, 1 day = 8 working hours (and 1 week = 5 days, 1 month = 4 weeks, 1 year = 12 months, all cascading from it). If a customer works 7.5-hour days instead, set `hoursADay` accordingly — it affects both how durations are **displayed** and how typed values are **parsed**:
+Different customers work different schedules — some do 8-hour days, others 7.5 or 7. `hoursADay` tells the field what "1 day" means for your app, and everything built on top of a day (a week, a month, a year) follows automatically.
 
-```properties
-jmix.durationField.hoursADay=7.5
-```
+This matters both for what gets **typed in** and what gets **shown**. If `hoursADay` is `7.5`, then someone entering `2 days` is planning 15 hours of work, and 15 hours of logged time will be shown back as `2d`.
 
-```java
-// with hoursADay = 7.5
-DurationFormatter.parse("2d", 7.5);          // -> Duration.ofHours(15)
-DurationFormatter.format(Duration.ofHours(30), true, 7.5);  // -> "4d"
-```
+#### Always showing one unit
 
-Users can still type any mix of units (`2w`, `16h`, `1mo`) — only the day/week/month/year *conversion ratio* changes, not what's accepted as input.
+Normally, a duration is shown broken into whatever units fit best — 25 hours becomes `3d 1h`. For timesheets and planning views, it's often clearer to always see the same unit, so every value is easy to compare at a glance. Setting `alwaysDisplayIn=days` does that: users can still type a duration however they like (`2 weeks`, `16 hours`, `1 month`), but it always displays as a number of days, with a decimal when it doesn't divide evenly:
 
-#### `alwaysDisplayIn` — always show a single unit
+| Someone enters | With an 8-hour day | With a 7.5-hour day |
+|-----------------|---------------------|------------------------|
+| 16 hours        | 2 days              | 2.13 days              |
+| 2 weeks         | 10 days             | 10 days                |
+| 30 hours        | 3.75 days           | 4 days                 |
 
-By default, durations display as a multi-part breakdown, e.g. `Duration.ofHours(25)` → `"3d 1h"`. For reporting/timesheet screens where you always want one consistent unit (e.g. days, so 30 hours of planned work reads as "3.75 days" instead of "3d 6h"), set:
-
-```properties
-jmix.durationField.alwaysDisplayIn=days
-```
-
-With that set, the field still lets users **type** `2 weeks` or `16 hours`, but always **displays** the value as a single decimal number in the configured unit:
-
-| User enters | Displays as (`hoursADay=8`) | Displays as (`hoursADay=7.5`) |
-|-------------|------------------------------|--------------------------------|
-| `16h`       | `2d`                         | `2.13d`                        |
-| `2w`        | `10d`                        | `10d`                          |
-| `30h`       | `3.75d`                      | `4d`                           |
-
-Accepted values are the same unit aliases used for parsing (`ms`, `s`, `m`, `h`, `d`, `w`, `mo`, `y`, or their long forms `days`, `hours`, etc.), case-insensitive. Numbers are rounded half-up to 2 decimal places, with trailing zeros stripped (`4.00d` → `4d`).
-
-Leave it unset (the default) to keep the original multi-part breakdown behavior.
+You can point it at any unit that makes sense — hours, weeks, months, years — not just days. Leave the property unset to keep the default behavior of showing the most fitting mix of units.
