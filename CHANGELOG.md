@@ -1,3 +1,8 @@
+## [3.1.0] - 2026-09-14
+
+- Add support for alwaysDisplayIn
+- Add support for hoursADay
+
 ## [3.0.0] - 2026-07-02
 
 - Compatibility with Jmix 3.0
