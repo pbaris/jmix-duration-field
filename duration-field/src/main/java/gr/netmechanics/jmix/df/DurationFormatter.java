@@ -1,5 +1,7 @@
 package gr.netmechanics.jmix.df;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.regex.Pattern;
  * DurationFormatter.format(Duration.ofMillis(500))  &rarr; "500ms"
  * DurationFormatter.format(Duration.ofSeconds(45))   &rarr; "45s"
  * DurationFormatter.format(Duration.ofSeconds(90))   &rarr; "1m 30s"
- * DurationFormatter.format(Duration.ofHours(25))     &rarr; "1d 1h"
+ * DurationFormatter.format(Duration.ofHours(25))     &rarr; "3d 1h"
  * </pre>
  *
  * <p><b>Examples — long labels:</b></p>
@@ -28,7 +30,7 @@ import java.util.regex.Pattern;
  * <ul>
  *   <li>1 minute = 60 seconds</li>
  *   <li>1 hour   = 60 minutes</li>
- *   <li>1 day    = 8 hours (working day)</li>
+ *   <li>1 day    = a configurable number of working hours (default 8, see {@code hoursADay})</li>
  *   <li>1 week   = 5 days (working week)</li>
  *   <li>1 month  = 4 weeks</li>
  *   <li>1 year   = 12 months</li>
@@ -36,22 +38,17 @@ import java.util.regex.Pattern;
  */
 public final class DurationFormatter {
 
-    // Working time constants
-    private static final long MILLIS_PER_SECOND = 1000L;
-    private static final long SECONDS_PER_MINUTE = 60L;
-    private static final long MINUTES_PER_HOUR = 60L;
-    private static final long HOURS_PER_DAY = 8L;
+    /** Default working hours in a day, used when no {@code hoursADay} is given. */
+    public static final double DEFAULT_HOURS_A_DAY = 8.0;
+
     private static final long DAYS_PER_WEEK = 5L;
     private static final long WEEKS_PER_MONTH = 4L;
     private static final long MONTHS_PER_YEAR = 12L;
 
-    private static final long MILLIS_IN_SECOND = MILLIS_PER_SECOND;
-    private static final long MILLIS_IN_MINUTE = SECONDS_PER_MINUTE * MILLIS_IN_SECOND;
-    private static final long MILLIS_IN_HOUR = MINUTES_PER_HOUR * MILLIS_IN_MINUTE;
-    private static final long MILLIS_IN_DAY = HOURS_PER_DAY * MILLIS_IN_HOUR;
-    private static final long MILLIS_IN_WEEK = DAYS_PER_WEEK * MILLIS_IN_DAY;
-    private static final long MILLIS_IN_MONTH = WEEKS_PER_MONTH * MILLIS_IN_WEEK;
-    private static final long MILLIS_IN_YEAR = MONTHS_PER_YEAR * MILLIS_IN_MONTH;
+    private static final long MILLIS_IN_MILLISECOND = 1L;
+    private static final long MILLIS_IN_SECOND = 1000L;
+    private static final long MILLIS_IN_MINUTE = 60L * MILLIS_IN_SECOND;
+    private static final long MILLIS_IN_HOUR = 60L * MILLIS_IN_MINUTE;
 
     /** Regex to capture pairs of numbers and unit labels. */
     private static final Pattern DURATION_PATTERN =
@@ -60,17 +57,18 @@ public final class DurationFormatter {
     private DurationFormatter() {}
 
     /**
-     * Formats a {@link Duration} using <b>short labels</b> (e.g. "1h 30m 15s").
+     * Formats a {@link Duration} using <b>short labels</b> (e.g. "1h 30m 15s") and the default
+     * 8-hour working day.
      *
      * @param duration the duration to format; must not be {@code null}
      * @return a human-readable string, or "0ms" for zero / negative durations
      */
     public static String format(final Duration duration) {
-        return format(duration, true);
+        return format(duration, true, DEFAULT_HOURS_A_DAY, null);
     }
 
     /**
-     * Formats a {@link Duration} with a choice of label style.
+     * Formats a {@link Duration} with a choice of label style, using the default 8-hour working day.
      *
      * @param duration    the duration to format; must not be {@code null}
      * @param shortLabels {@code true} for short labels (y, mo, w, d, h, m, s, ms),
@@ -78,8 +76,35 @@ public final class DurationFormatter {
      * @return a human-readable string, or "0ms" / "0 milliseconds" for
      *         zero / negative durations
      */
-    @SuppressWarnings({"checkstyle:NeedBraces", "checkstyle:VariableDeclarationUsageDistance"})
     public static String format(final Duration duration, final boolean shortLabels) {
+        return format(duration, shortLabels, DEFAULT_HOURS_A_DAY, null);
+    }
+
+    /**
+     * Formats a {@link Duration} with a choice of label style and a configurable working day length.
+     *
+     * @param duration    the duration to format; must not be {@code null}
+     * @param shortLabels {@code true} for short labels, {@code false} for full words
+     * @param hoursADay   working hours in a day (e.g. 7.5); drives the day/week/month/year breakdown
+     * @return a human-readable string, or "0ms" / "0 milliseconds" for zero / negative durations
+     */
+    public static String format(final Duration duration, final boolean shortLabels, final double hoursADay) {
+        return format(duration, shortLabels, hoursADay, null);
+    }
+
+    /**
+     * Formats a {@link Duration}, optionally forcing the whole value into a single unit
+     * (e.g. "3.75d") instead of the default multi-part breakdown ("3d 6h").
+     *
+     * @param duration       the duration to format; must not be {@code null}
+     * @param shortLabels    {@code true} for short labels, {@code false} for full words
+     * @param hoursADay      working hours in a day (e.g. 7.5); drives the day/week/month/year breakdown
+     * @param alwaysDisplayIn when non-{@code null}, the single unit to always render the duration in;
+     *                        when {@code null}, the usual multi-part breakdown is used
+     * @return a human-readable string, or "0ms" / "0 milliseconds" for zero / negative durations
+     */
+    public static String format(final Duration duration, final boolean shortLabels, final double hoursADay,
+                                 final DurationUnit alwaysDisplayIn) {
         if (duration == null) {
             return "";
         }
@@ -90,51 +115,34 @@ public final class DurationFormatter {
             return shortLabels ? "0ms" : "0 milliseconds";
         }
 
-        long years = totalMillis / MILLIS_IN_YEAR;
-        totalMillis %= MILLIS_IN_YEAR;
+        if (alwaysDisplayIn != null) {
+            return formatSingleUnit(totalMillis, alwaysDisplayIn, shortLabels, hoursADay);
+        }
 
-        long months = totalMillis / MILLIS_IN_MONTH;
-        totalMillis %= MILLIS_IN_MONTH;
-
-        long weeks = totalMillis / MILLIS_IN_WEEK;
-        totalMillis %= MILLIS_IN_WEEK;
-
-        long days = totalMillis / MILLIS_IN_DAY;
-        totalMillis %= MILLIS_IN_DAY;
-
-        long hours = totalMillis / MILLIS_IN_HOUR;
-        totalMillis %= MILLIS_IN_HOUR;
-
-        long minutes = totalMillis / MILLIS_IN_MINUTE;
-        totalMillis %= MILLIS_IN_MINUTE;
-
-        long seconds = totalMillis / MILLIS_IN_SECOND;
-        totalMillis %= MILLIS_IN_SECOND;
-
-        long millis = totalMillis;
-
-        List<String> parts = new ArrayList<>();
-
-        if (years > 0) parts.add(label(years, "y", "year", shortLabels));
-        if (months > 0) parts.add(label(months, "mo", "month", shortLabels));
-        if (weeks > 0) parts.add(label(weeks, "w", "week", shortLabels));
-        if (days > 0) parts.add(label(days, "d", "day", shortLabels));
-        if (hours > 0) parts.add(label(hours, "h", "hour", shortLabels));
-        if (minutes > 0) parts.add(label(minutes, "m", "minute", shortLabels));
-        if (seconds > 0) parts.add(label(seconds, "s", "second", shortLabels));
-        if (millis > 0) parts.add(label(millis, "ms", "millisecond", shortLabels));
-
-        return String.join(" ", parts);
+        return formatBreakdown(totalMillis, shortLabels, hoursADay);
     }
 
     /**
-     * Parses a human-readable duration string into a {@link Duration} object.
+     * Parses a human-readable duration string into a {@link Duration} object, using the default
+     * 8-hour working day.
      * Supports both short and long labels (e.g., "1d 2h" or "1 day 2 hours").
      *
      * @param input the string to parse; must not be {@code null}
      * @return the resulting {@link Duration}
      */
     public static Duration parse(final String input) {
+        return parse(input, DEFAULT_HOURS_A_DAY);
+    }
+
+    /**
+     * Parses a human-readable duration string into a {@link Duration} object, using a
+     * configurable working day length.
+     *
+     * @param input     the string to parse; must not be {@code null}
+     * @param hoursADay working hours in a day (e.g. 7.5); drives the day/week/month/year conversion
+     * @return the resulting {@link Duration}
+     */
+    public static Duration parse(final String input, final double hoursADay) {
         if (input == null || input.trim().isEmpty()) {
             return null;
         }
@@ -146,45 +154,8 @@ public final class DurationFormatter {
         while (matcher.find()) {
             found = true;
             long value = Long.parseLong(matcher.group(1));
-            String unit = matcher.group(2);
-
-            switch (unit) {
-                case "y":
-                case "year":
-                    totalMillis += value * MILLIS_IN_YEAR;
-                    break;
-                case "mo":
-                case "month":
-                    totalMillis += value * MILLIS_IN_MONTH;
-                    break;
-                case "w":
-                case "week":
-                    totalMillis += value * MILLIS_IN_WEEK;
-                    break;
-                case "d":
-                case "day":
-                    totalMillis += value * MILLIS_IN_DAY;
-                    break;
-                case "h":
-                case "hour":
-                    totalMillis += value * MILLIS_IN_HOUR;
-                    break;
-                case "m":
-                case "minute":
-                    totalMillis += value * MILLIS_IN_MINUTE;
-                    break;
-                case "s":
-                case "second":
-                    totalMillis += value * MILLIS_IN_SECOND;
-                    break;
-                case "ms":
-                case "millisecond":
-                    totalMillis += value;
-                    break;
-                default:
-                    totalMillis += 0;
-                    break;
-            }
+            DurationUnit unit = DurationUnit.fromAlias(matcher.group(2));
+            totalMillis += value * millisPerUnit(unit, hoursADay);
         }
 
         if (!found) {
@@ -195,18 +166,57 @@ public final class DurationFormatter {
     }
 
     /**
-     * Builds a single labelled unit string.
-     *
-     * @param value       the numeric value
-     * @param shortForm   short label, e.g. "w"
-     * @param longForm    singular long label, e.g. "week"
-     * @param shortLabels {@code true} to use the short form
-     * @return the formatted label string
+     * Builds the default multi-part breakdown, e.g. "1d 1h".
      */
-    private static String label(final long value, final String shortForm, final String longForm, final boolean shortLabels) {
-        if (shortLabels) {
-            return value + shortForm;
+    private static String formatBreakdown(final long totalMillis, final boolean shortLabels, final double hoursADay) {
+        List<String> parts = new ArrayList<>();
+        long remaining = totalMillis;
+
+        DurationUnit[] units = DurationUnit.values();
+        for (int i = units.length - 1; i >= 0; i--) {
+            DurationUnit unit = units[i];
+            long divisor = millisPerUnit(unit, hoursADay);
+            long value = remaining / divisor;
+            remaining %= divisor;
+
+            if (value > 0) {
+                parts.add(unit.label(value, shortLabels));
+            }
         }
-        return value + " " + longForm + (value == 1 ? "" : "s");
+
+        return String.join(" ", parts);
+    }
+
+    /**
+     * Renders the whole duration as a single decimal number in one unit, e.g. "3.75d".
+     * Rounded HALF_UP to 2 decimal places, with trailing zeros stripped.
+     */
+    private static String formatSingleUnit(final long totalMillis, final DurationUnit unit, final boolean shortLabels,
+                                            final double hoursADay) {
+        long divisor = millisPerUnit(unit, hoursADay);
+        BigDecimal value = BigDecimal.valueOf(totalMillis)
+            .divide(BigDecimal.valueOf(divisor), 2, RoundingMode.HALF_UP)
+            .stripTrailingZeros();
+
+        String numericValue = value.scale() < 0 ? value.setScale(0).toPlainString() : value.toPlainString();
+
+        return unit.label(numericValue, shortLabels);
+    }
+
+    /**
+     * Number of milliseconds in one of the given unit, based on the configured working day length.
+     */
+    private static long millisPerUnit(final DurationUnit unit, final double hoursADay) {
+        switch (unit) {
+            case MILLISECONDS: return MILLIS_IN_MILLISECOND;
+            case SECONDS: return MILLIS_IN_SECOND;
+            case MINUTES: return MILLIS_IN_MINUTE;
+            case HOURS: return MILLIS_IN_HOUR;
+            case DAYS: return Math.round(hoursADay * MILLIS_IN_HOUR);
+            case WEEKS: return Math.round(DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
+            case MONTHS: return Math.round(WEEKS_PER_MONTH * DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
+            case YEARS: return Math.round(MONTHS_PER_YEAR * WEEKS_PER_MONTH * DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
+            default: throw new IllegalStateException("Unhandled unit: " + unit);
+        }
     }
 }
