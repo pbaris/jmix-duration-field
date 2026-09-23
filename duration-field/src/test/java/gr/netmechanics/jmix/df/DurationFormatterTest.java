@@ -1,12 +1,39 @@
 package gr.netmechanics.jmix.df;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.time.Duration;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class DurationFormatterTest {
+
+    @Test
+    void formatBreakdownUsesLabelResolverWhenProvided() {
+        Function<String, String> resolver = key -> switch (key) {
+            case "durationUnit.DAYS.short" -> "j";
+            case "durationUnit.HOURS.short" -> "h";
+            default -> key;
+        };
+
+        assertEquals("3j 1h", DurationFormatter.format(Duration.ofHours(25), true, 8, null, resolver));
+    }
+
+    @Test
+    void formatAlwaysDisplayInUsesLabelResolverWhenProvided() {
+        Function<String, String> resolver = key -> switch (key) {
+            case "durationUnit.DAYS.long.plural" -> "jours";
+            default -> key;
+        };
+
+        assertEquals("3.75 jours", DurationFormatter.format(Duration.ofHours(30), false, 8, DurationUnit.DAYS, resolver));
+    }
+
+    @Test
+    void formatWithNullResolverFallsBackToDefaultLabels() {
+        assertEquals("3d 1h", DurationFormatter.format(Duration.ofHours(25), true, 8, null, null));
+    }
 
     @Test
     void formatUsesConfigurableHoursPerDayForDayBreakdown() {

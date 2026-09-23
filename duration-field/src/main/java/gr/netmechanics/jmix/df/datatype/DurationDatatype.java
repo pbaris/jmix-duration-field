@@ -2,14 +2,19 @@ package gr.netmechanics.jmix.df.datatype;
 
 import java.time.Duration;
 import java.util.Locale;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import gr.netmechanics.jmix.df.DurationFormatter;
 import gr.netmechanics.jmix.df.DurationUnit;
+import gr.netmechanics.jmix.df.annotation.DurationFormat;
+import io.jmix.core.Messages;
 import io.jmix.core.metamodel.annotation.DatatypeDef;
 import io.jmix.core.metamodel.annotation.Ddl;
 import io.jmix.core.metamodel.datatype.Datatype;
+import io.jmix.core.metamodel.model.MetaProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 
@@ -20,6 +25,8 @@ import org.springframework.util.StringUtils;
 @Ddl("bigint")
 public class DurationDatatype implements Datatype<Duration> {
 
+    public static final String MESSAGE_GROUP = "gr.netmechanics.jmix.df";
+
     @Value("${jmix.durationField.shortLabels:true}")
     private boolean shortLabels;
 
@@ -29,20 +36,42 @@ public class DurationDatatype implements Datatype<Duration> {
     @Value("${jmix.durationField.alwaysDisplayIn:}")
     private String alwaysDisplayIn;
 
+    @Autowired(required = false)
+    private Messages messages;
+
+    /**
+     * @return whether this datatype renders/expects short labels (e.g. "1d") rather than long ones (e.g. "1 day")
+     */
+    public boolean isShortLabels() {
+        return shortLabels;
+    }
+
+    /**
+     * @return the configured working hours in a day, driving the day/week/month/year breakdown
+     */
+    public double getHoursADay() {
+        return hoursADay;
+    }
+
+    /**
+     * @return the unit alias durations are always rendered in (e.g. "days"), or blank/{@code null}
+     *         when the default multi-part breakdown is used instead
+     */
+    @Nullable
+    public String getAlwaysDisplayIn() {
+        return alwaysDisplayIn;
+    }
+
     @Nonnull
     @Override
     public String format(@Nullable final Object value) {
-        if (value instanceof Duration duration) {
-            return DurationFormatter.format(duration, shortLabels, hoursADay, resolveAlwaysDisplayIn());
-        }
-
-        return "";
+        return format(value, resolver(messages, null));
     }
 
     @Nonnull
     @Override
     public String format(@Nullable final Object value, @Nonnull final Locale locale) {
-        return format(value);
+        return format(value, resolver(messages, locale));
     }
 
     @Nullable
@@ -57,8 +86,72 @@ public class DurationDatatype implements Datatype<Duration> {
         return parse(value);
     }
 
+    /**
+     * Formats a duration exactly as a {@code <nm:durationField>} bound to {@code property} would: honoring
+     * a {@link DurationFormat} annotation on the property when present, falling back to the app-wide
+     * {@code jmix.durationField.*} config otherwise. Intended for wiring grid/list columns so they render
+     * identically to the corresponding form field, without duplicating formatting logic.
+     *
+     * @param value    the duration to format; {@code null} yields an empty string
+     * @param property the entity attribute {@code value} came from, or {@code null} to use the app-wide
+     *                 config only
+     * @return a human-readable string
+     */
+    @Nonnull
+    public String format(@Nullable final Duration value, @Nullable final MetaProperty property) {
+        if (value == null) {
+            return "";
+        }
+
+        DurationFormat durationFormat = property != null
+            ? property.getAnnotatedElement().getAnnotation(DurationFormat.class)
+            : null;
+
+        boolean effectiveShortLabels = durationFormat != null ? durationFormat.shortLabels() : shortLabels;
+        double effectiveHoursADay = durationFormat != null ? durationFormat.hoursADay() : hoursADay;
+        String effectiveAlwaysDisplayIn = durationFormat != null && StringUtils.hasText(durationFormat.alwaysDisplayIn())
+            ? durationFormat.alwaysDisplayIn()
+            : alwaysDisplayIn;
+
+        DurationUnit alwaysDisplayInUnit = StringUtils.hasText(effectiveAlwaysDisplayIn)
+            ? DurationUnit.fromAlias(effectiveAlwaysDisplayIn)
+            : null;
+
+        return DurationFormatter.format(value, effectiveShortLabels, effectiveHoursADay, alwaysDisplayInUnit,
+            resolver(messages, null));
+    }
+
+    @Nonnull
+    private String format(@Nullable final Object value, @Nullable final Function<String, String> labelResolver) {
+        if (value instanceof Duration duration) {
+            return DurationFormatter.format(duration, shortLabels, hoursADay, resolveAlwaysDisplayIn(), labelResolver);
+        }
+
+        return "";
+    }
+
     @Nullable
     private DurationUnit resolveAlwaysDisplayIn() {
         return StringUtils.hasText(alwaysDisplayIn) ? DurationUnit.fromAlias(alwaysDisplayIn) : null;
+    }
+
+    /**
+     * Builds a message-key resolver backed by Jmix {@link Messages}, for use with
+     * {@link DurationFormatter}'s resolver-aware {@code format} overload.
+     *
+     * @param messages the {@link Messages} bean to resolve through; {@code null} yields no resolver
+     *                 (falling back to the default English labels)
+     * @param locale   an explicit locale to resolve with, or {@code null} to use the current
+     *                 session locale
+     * @return a resolver function, or {@code null} when {@code messages} is {@code null}
+     */
+    @Nullable
+    public static Function<String, String> resolver(@Nullable final Messages messages, @Nullable final Locale locale) {
+        if (messages == null) {
+            return null;
+        }
+        return locale != null
+            ? key -> messages.getMessage(MESSAGE_GROUP, key, locale)
+            : key -> messages.getMessage(MESSAGE_GROUP, key);
     }
 }
