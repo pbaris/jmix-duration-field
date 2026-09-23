@@ -5,14 +5,31 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.Locale;
 
+import gr.netmechanics.jmix.df.annotation.DurationFormat;
 import io.jmix.core.Messages;
+import io.jmix.core.metamodel.model.MetaProperty;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class DurationDatatypeTest {
+
+    private static class SampleEntity {
+        @DurationFormat(shortLabels = false, hoursADay = 7.5, alwaysDisplayIn = "days")
+        private Duration estimate;
+
+        private Duration plain;
+    }
+
+    private MetaProperty metaPropertyFor(final String fieldName) throws NoSuchFieldException {
+        Field field = SampleEntity.class.getDeclaredField(fieldName);
+        MetaProperty metaProperty = mock(MetaProperty.class);
+        when(metaProperty.getAnnotatedElement()).thenReturn(field);
+        return metaProperty;
+    }
 
     @Test
     void exposesConfiguredValuesViaGetters() {
@@ -102,5 +119,40 @@ class DurationDatatypeTest {
         ReflectionTestUtils.setField(datatype, "hoursADay", 7.5);
 
         assertEquals(Duration.ofHours(15), datatype.parse("2d"));
+    }
+
+    @Test
+    void formatWithPropertyUsesDurationFormatAnnotationWhenPresent() throws NoSuchFieldException {
+        DurationDatatype datatype = new DurationDatatype();
+        ReflectionTestUtils.setField(datatype, "shortLabels", true);
+        ReflectionTestUtils.setField(datatype, "hoursADay", 8.0);
+
+        // annotation's hoursADay=7.5: 30h / 7.5h-per-day = exactly 4 days (vs. 3.75d with the global default of 8)
+        assertEquals("4 days", datatype.format(Duration.ofHours(30), metaPropertyFor("estimate")));
+    }
+
+    @Test
+    void formatWithPropertyFallsBackToGlobalDefaultsWhenNotAnnotated() throws NoSuchFieldException {
+        DurationDatatype datatype = new DurationDatatype();
+        ReflectionTestUtils.setField(datatype, "shortLabels", true);
+        ReflectionTestUtils.setField(datatype, "hoursADay", 8.0);
+
+        assertEquals("3d 1h", datatype.format(Duration.ofHours(25), metaPropertyFor("plain")));
+    }
+
+    @Test
+    void formatWithNullPropertyFallsBackToGlobalDefaults() {
+        DurationDatatype datatype = new DurationDatatype();
+        ReflectionTestUtils.setField(datatype, "shortLabels", true);
+        ReflectionTestUtils.setField(datatype, "hoursADay", 8.0);
+
+        assertEquals("3d 1h", datatype.format(Duration.ofHours(25), (MetaProperty) null));
+    }
+
+    @Test
+    void formatWithPropertyReturnsEmptyStringForNullValue() throws NoSuchFieldException {
+        DurationDatatype datatype = new DurationDatatype();
+
+        assertEquals("", datatype.format(null, metaPropertyFor("estimate")));
     }
 }

@@ -8,10 +8,12 @@ import javax.annotation.Nullable;
 
 import gr.netmechanics.jmix.df.DurationFormatter;
 import gr.netmechanics.jmix.df.DurationUnit;
+import gr.netmechanics.jmix.df.annotation.DurationFormat;
 import io.jmix.core.Messages;
 import io.jmix.core.metamodel.annotation.DatatypeDef;
 import io.jmix.core.metamodel.annotation.Ddl;
 import io.jmix.core.metamodel.datatype.Datatype;
+import io.jmix.core.metamodel.model.MetaProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
@@ -82,6 +84,41 @@ public class DurationDatatype implements Datatype<Duration> {
     @Override
     public Duration parse(@Nullable final String value, @Nonnull final Locale locale) {
         return parse(value);
+    }
+
+    /**
+     * Formats a duration exactly as a {@code <nm:durationField>} bound to {@code property} would: honoring
+     * a {@link DurationFormat} annotation on the property when present, falling back to the app-wide
+     * {@code jmix.durationField.*} config otherwise. Intended for wiring grid/list columns so they render
+     * identically to the corresponding form field, without duplicating formatting logic.
+     *
+     * @param value    the duration to format; {@code null} yields an empty string
+     * @param property the entity attribute {@code value} came from, or {@code null} to use the app-wide
+     *                 config only
+     * @return a human-readable string
+     */
+    @Nonnull
+    public String format(@Nullable final Duration value, @Nullable final MetaProperty property) {
+        if (value == null) {
+            return "";
+        }
+
+        DurationFormat durationFormat = property != null
+            ? property.getAnnotatedElement().getAnnotation(DurationFormat.class)
+            : null;
+
+        boolean effectiveShortLabels = durationFormat != null ? durationFormat.shortLabels() : shortLabels;
+        double effectiveHoursADay = durationFormat != null ? durationFormat.hoursADay() : hoursADay;
+        String effectiveAlwaysDisplayIn = durationFormat != null && StringUtils.hasText(durationFormat.alwaysDisplayIn())
+            ? durationFormat.alwaysDisplayIn()
+            : alwaysDisplayIn;
+
+        DurationUnit alwaysDisplayInUnit = StringUtils.hasText(effectiveAlwaysDisplayIn)
+            ? DurationUnit.fromAlias(effectiveAlwaysDisplayIn)
+            : null;
+
+        return DurationFormatter.format(value, effectiveShortLabels, effectiveHoursADay, alwaysDisplayInUnit,
+            resolver(messages, null));
     }
 
     @Nonnull

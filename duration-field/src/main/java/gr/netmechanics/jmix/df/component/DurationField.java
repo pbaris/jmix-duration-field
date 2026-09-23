@@ -5,10 +5,12 @@ import javax.annotation.Nullable;
 
 import gr.netmechanics.jmix.df.DurationFormatter;
 import gr.netmechanics.jmix.df.DurationUnit;
+import gr.netmechanics.jmix.df.annotation.DurationFormat;
 import gr.netmechanics.jmix.df.datatype.DurationDatatype;
 import io.jmix.core.Messages;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.data.ConversionException;
+import io.jmix.flowui.data.EntityValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
@@ -33,11 +35,16 @@ public class DurationField extends TypedTextField<Duration> {
     private String alwaysDisplayIn;
 
     /**
-     * @return whether this field renders/expects short labels (e.g. "1d"); falls back to the
-     *         app-wide {@code jmix.durationField.shortLabels} value when not overridden
+     * @return whether this field renders/expects short labels (e.g. "1d"); falls back to a
+     *         {@link DurationFormat} annotation on the bound entity attribute, then to the
+     *         app-wide {@code jmix.durationField.shortLabels} value, when not overridden
      */
     public boolean isShortLabels() {
-        return shortLabels != null ? shortLabels : durationDatatype.isShortLabels();
+        if (shortLabels != null) {
+            return shortLabels;
+        }
+        DurationFormat durationFormat = resolveDurationFormat();
+        return durationFormat != null ? durationFormat.shortLabels() : durationDatatype.isShortLabels();
     }
 
     /**
@@ -51,11 +58,16 @@ public class DurationField extends TypedTextField<Duration> {
     }
 
     /**
-     * @return the working hours in a day used by this field; falls back to the app-wide
-     *         {@code jmix.durationField.hoursADay} value when not overridden
+     * @return the working hours in a day used by this field; falls back to a {@link DurationFormat}
+     *         annotation on the bound entity attribute, then to the app-wide
+     *         {@code jmix.durationField.hoursADay} value, when not overridden
      */
     public double getHoursADay() {
-        return hoursADay != null ? hoursADay : durationDatatype.getHoursADay();
+        if (hoursADay != null) {
+            return hoursADay;
+        }
+        DurationFormat durationFormat = resolveDurationFormat();
+        return durationFormat != null ? durationFormat.hoursADay() : durationDatatype.getHoursADay();
     }
 
     /**
@@ -68,12 +80,21 @@ public class DurationField extends TypedTextField<Duration> {
     }
 
     /**
-     * @return the unit alias this field always renders durations in (e.g. "days"), or {@code null}
-     *         when the default multi-part breakdown is used
+     * @return the unit alias this field always renders durations in (e.g. "days"), falling back to
+     *         a {@link DurationFormat} annotation on the bound entity attribute, then to the
+     *         app-wide {@code jmix.durationField.alwaysDisplayIn} value; {@code null}/blank means
+     *         the default multi-part breakdown is used
      */
     @Nullable
     public String getAlwaysDisplayIn() {
-        return alwaysDisplayIn != null ? alwaysDisplayIn : durationDatatype.getAlwaysDisplayIn();
+        if (alwaysDisplayIn != null) {
+            return alwaysDisplayIn;
+        }
+        DurationFormat durationFormat = resolveDurationFormat();
+        if (durationFormat != null && StringUtils.hasText(durationFormat.alwaysDisplayIn())) {
+            return durationFormat.alwaysDisplayIn();
+        }
+        return durationDatatype.getAlwaysDisplayIn();
     }
 
     /**
@@ -113,5 +134,18 @@ public class DurationField extends TypedTextField<Duration> {
     private DurationUnit resolveAlwaysDisplayIn() {
         String alias = getAlwaysDisplayIn();
         return StringUtils.hasText(alias) ? DurationUnit.fromAlias(alias) : null;
+    }
+
+    /**
+     * @return the {@link DurationFormat} annotation on the bound entity attribute, or {@code null}
+     *         when this field isn't bound to an entity attribute or the attribute isn't annotated
+     */
+    @Nullable
+    private DurationFormat resolveDurationFormat() {
+        if (getValueSource() instanceof EntityValueSource<?, ?> entityValueSource) {
+            return entityValueSource.getMetaPropertyPath().getMetaProperty()
+                .getAnnotatedElement().getAnnotation(DurationFormat.class);
+        }
+        return null;
     }
 }

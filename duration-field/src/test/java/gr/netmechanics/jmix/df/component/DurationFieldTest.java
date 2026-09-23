@@ -7,14 +7,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 
+import gr.netmechanics.jmix.df.annotation.DurationFormat;
 import gr.netmechanics.jmix.df.datatype.DurationDatatype;
 import io.jmix.core.Messages;
+import io.jmix.core.metamodel.model.MetaProperty;
+import io.jmix.core.metamodel.model.MetaPropertyPath;
+import io.jmix.flowui.component.delegate.TextInputFieldDelegate;
+import io.jmix.flowui.data.EntityValueSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class DurationFieldTest {
+
+    private static class SampleEntity {
+        @DurationFormat(shortLabels = false, hoursADay = 7.5, alwaysDisplayIn = "days")
+        private Duration estimate;
+    }
 
     private DurationField newField(final boolean globalShortLabels, final double globalHoursADay) {
         DurationField field = new DurationField();
@@ -22,7 +33,29 @@ class DurationFieldTest {
         ReflectionTestUtils.setField(global, "shortLabels", globalShortLabels);
         ReflectionTestUtils.setField(global, "hoursADay", globalHoursADay);
         ReflectionTestUtils.setField(field, "durationDatatype", global);
+
+        // Unbound by default (getValueSource() returns null), matching a field with no
+        // dataContainer/property configured; bindToAnnotatedProperty() overrides this.
+        TextInputFieldDelegate<DurationField, Duration> delegate = mock(TextInputFieldDelegate.class);
+        ReflectionTestUtils.setField(field, "fieldDelegate", delegate);
+
         return field;
+    }
+
+    private void bindToAnnotatedProperty(final DurationField field, final Field annotatedField) {
+        MetaProperty metaProperty = mock(MetaProperty.class);
+        when(metaProperty.getAnnotatedElement()).thenReturn(annotatedField);
+
+        MetaPropertyPath propertyPath = mock(MetaPropertyPath.class);
+        when(propertyPath.getMetaProperty()).thenReturn(metaProperty);
+
+        EntityValueSource<?, Duration> valueSource = mock(EntityValueSource.class);
+        when(valueSource.getMetaPropertyPath()).thenReturn(propertyPath);
+
+        TextInputFieldDelegate<DurationField, Duration> delegate = mock(TextInputFieldDelegate.class);
+        when(delegate.getValueSource()).thenReturn(valueSource);
+
+        ReflectionTestUtils.setField(field, "fieldDelegate", delegate);
     }
 
     @Test
@@ -112,5 +145,40 @@ class DurationFieldTest {
 
         assertNull(field.convertToModel(""));
         assertNull(field.convertToModel(null));
+    }
+
+    @Test
+    void gettersFallBackToEntityAnnotationWhenNoFieldOverrideSet() throws NoSuchFieldException {
+        DurationField field = newField(true, 8);
+        bindToAnnotatedProperty(field, SampleEntity.class.getDeclaredField("estimate"));
+
+        assertFalse(field.isShortLabels());
+        assertEquals(7.5, field.getHoursADay());
+        assertEquals("days", field.getAlwaysDisplayIn());
+    }
+
+    @Test
+    void fieldLevelOverrideTakesPrecedenceOverEntityAnnotation() throws NoSuchFieldException {
+        DurationField field = newField(true, 8);
+        bindToAnnotatedProperty(field, SampleEntity.class.getDeclaredField("estimate"));
+        field.setShortLabels(true);
+
+        assertTrue(field.isShortLabels());
+    }
+
+    @Test
+    void entityAnnotationTakesPrecedenceOverGlobalDefaultsWhenNoFieldOverride() throws NoSuchFieldException {
+        DurationField field = newField(true, 8);
+        bindToAnnotatedProperty(field, SampleEntity.class.getDeclaredField("estimate"));
+
+        // annotation's hoursADay=7.5: 30h / 7.5h-per-day = exactly 4 days (vs. 3.75d with the global default of 8)
+        assertEquals("4 days", field.convertToPresentation(Duration.ofHours(30)));
+    }
+
+    @Test
+    void unboundFieldIgnoresEntityAnnotationLookupAndUsesGlobalDefaults() {
+        DurationField field = newField(true, 8);
+
+        assertEquals("3d 1h", field.convertToPresentation(Duration.ofHours(25)));
     }
 }

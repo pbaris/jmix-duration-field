@@ -1,3 +1,9 @@
+## [3.2.0] - 2026-09-23
+
+- Add per-field overrides for `shortLabels`, `hoursADay`, and `alwaysDisplayIn` on `<nm:durationField>` (XML attributes and getters/setters)
+- Add `@DurationFormat` entity-attribute annotation, driving both form fields and grid/list columns automatically with no per-screen wiring
+- Add localization support for duration labels, with English translations included
+
 ## [3.1.0] - 2026-09-14
 
 - Add support for alwaysDisplayIn

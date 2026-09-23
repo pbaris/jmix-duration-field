@@ -101,3 +101,49 @@ Normally, a duration is shown broken into whatever units fit best — 25 hours b
 | 30 hours        | 3.75 days           | 4 days                 |
 
 You can point it at any unit that makes sense — hours, weeks, months, years — not just days. Leave the property unset to keep the default behavior of showing the most fitting mix of units.
+
+### Overriding per field
+
+`shortLabels`, `hoursADay`, and `alwaysDisplayIn` can also be set on a single `<nm:durationField>`, overriding the app-wide config for just that field:
+
+```xml
+<nm:durationField id="workLogField" property="workLog"
+                   shortLabels="false" hoursADay="7.5" alwaysDisplayIn="days" />
+```
+
+The same options are exposed as getters/setters on `DurationField`, for setting them from code:
+
+```java
+workLogField.setHoursADay(7.5);
+workLogField.setAlwaysDisplayIn("days");
+```
+
+### Overriding per entity attribute — `@DurationFormat`
+
+For a given `Duration` attribute, you usually want the same display options everywhere it shows up — in the edit form *and* in grids/lists — without repeating the same XML attributes on every field and every column. `@DurationFormat` sets them once, on the entity attribute itself:
+
+```java
+@Column(name = "WORK_LOG")
+@DurationFormat(shortLabels = false, hoursADay = 7.5, alwaysDisplayIn = "days")
+private Duration workLog;
+```
+
+Any `<nm:durationField>` bound to `workLog` picks this up automatically — no field XML attributes needed. So does any grid or list column showing `workLog`, since the annotation is applied at the metamodel level (the same mechanism Jmix's own `@NumberFormat` uses), not per-component.
+
+The full precedence, most to least specific:
+
+1. A `<nm:durationField>` XML attribute / setter call on the field itself
+2. `@DurationFormat` on the bound entity attribute
+3. The app-wide `jmix.durationField.*` configuration
+
+### Localization
+
+Duration labels (both short — `d`, `h`, `m` — and long — `day`, `hour`, `minute`) are fully localizable through Jmix's standard message bundles. The add-on ships English, French, and Greek translations out of the box. To add or override a language, define the same keys in your own app under `messages_<locale>.properties` in package `gr/netmechanics/jmix/df/`:
+
+```properties
+durationUnit.DAYS.short = d
+durationUnit.DAYS.long = day
+durationUnit.DAYS.long.plural = days
+```
+
+Each of the eight units (`MILLISECONDS`, `SECONDS`, `MINUTES`, `HOURS`, `DAYS`, `WEEKS`, `MONTHS`, `YEARS`) has a `.short` key and `.long`/`.long.plural` keys. Remember to also list the locale in `jmix.core.available-locales` so users can actually select it. Parsing user input stays locale-independent (English/short aliases only, e.g. `2d`, `3 weeks`) — only the displayed labels are localized.
