@@ -34,6 +34,10 @@ public class DurationFieldLoader extends AbstractComponentLoader<DurationField> 
         loadBoolean(element, "clearButtonVisible", resultComponent::setClearButtonVisible);
         loadResourceString(element, "title", context.getMessageGroup(), resultComponent::setTitle);
 
+        loadBoolean(element, "shortLabels", resultComponent::setShortLabels);
+        loadDouble(element, "hoursADay", resultComponent::setHoursADay);
+        loadString(element, "alwaysDisplayIn", resultComponent::setAlwaysDisplayIn);
+
         componentLoader().loadPlaceholder(resultComponent, element);
         componentLoader().loadLabel(resultComponent, element);
         componentLoader().loadEnabled(resultComponent, element);

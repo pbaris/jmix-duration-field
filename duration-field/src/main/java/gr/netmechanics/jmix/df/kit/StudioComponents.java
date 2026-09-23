@@ -40,6 +40,8 @@ public interface StudioComponents {
             @StudioProperty(xmlAttribute = "css", category = LOOK_AND_FEEL, type = StudioPropertyType.STRING),
             @StudioProperty(xmlAttribute = "clearButtonVisible", category = LOOK_AND_FEEL, type = StudioPropertyType.BOOLEAN, defaultValue = "false"),
             @StudioProperty(xmlAttribute = "shortLabels", category = GENERAL, type = StudioPropertyType.BOOLEAN, defaultValue = "true"),
+            @StudioProperty(xmlAttribute = "hoursADay", category = GENERAL, type = StudioPropertyType.DOUBLE, defaultValue = "8"),
+            @StudioProperty(xmlAttribute = "alwaysDisplayIn", category = GENERAL, type = StudioPropertyType.STRING),
             @StudioProperty(xmlAttribute = "enabled", category = GENERAL, type = StudioPropertyType.BOOLEAN, defaultValue = "true"),
             @StudioProperty(xmlAttribute = "readOnly", category = GENERAL, type = StudioPropertyType.BOOLEAN, defaultValue = "false"),
             @StudioProperty(xmlAttribute = "width", category = SIZE, type = StudioPropertyType.SIZE),
