@@ -11,29 +11,23 @@ import java.time.Duration;
 
 import gr.netmechanics.jmix.df.annotation.DurationFormat;
 import gr.netmechanics.jmix.df.datatype.AdaptiveDurationDatatype;
-import io.jmix.core.Stores;
-import io.jmix.core.metamodel.annotation.NumberFormat;
 import io.jmix.core.metamodel.datatype.Datatype;
-import io.jmix.core.metamodel.datatype.DatatypeRegistry;
-import io.jmix.core.metamodel.datatype.FormatStringsRegistry;
-import io.jmix.core.metamodel.datatype.impl.AdaptiveNumberDatatype;
 import io.jmix.core.metamodel.model.MetaProperty;
 import org.junit.jupiter.api.Test;
 
-class DurationAwareMetaModelLoaderTest {
+class DurationFormatDatatypeProviderTest {
 
     private static class Sample {
         @DurationFormat(shortLabels = false, hoursADay = 7.5, alwaysDisplayIn = "days")
         private Duration estimate;
 
-        @NumberFormat(pattern = "0.00")
-        private Double amount;
+        @DurationFormat
+        private String misannotated;
 
         private Duration plain;
     }
 
-    private final DurationAwareMetaModelLoader loader = new DurationAwareMetaModelLoader(
-        mock(DatatypeRegistry.class), mock(Stores.class), mock(FormatStringsRegistry.class), null);
+    private final DurationFormatDatatypeProvider provider = new DurationFormatDatatypeProvider(null);
 
     private MetaProperty metaPropertyFor(final String fieldName) throws NoSuchFieldException {
         Field field = Sample.class.getDeclaredField(fieldName);
@@ -44,7 +38,7 @@ class DurationAwareMetaModelLoaderTest {
 
     @Test
     void returnsAdaptiveDurationDatatypeWhenPropertyIsAnnotated() throws NoSuchFieldException {
-        Datatype<?> datatype = loader.getAdaptiveDatatype(metaPropertyFor("estimate"), Duration.class);
+        Datatype<?> datatype = provider.getAdaptiveDatatype(metaPropertyFor("estimate"), Duration.class);
 
         assertInstanceOf(AdaptiveDurationDatatype.class, datatype);
         assertEquals("4 days", datatype.format(Duration.ofHours(30)));
@@ -52,13 +46,11 @@ class DurationAwareMetaModelLoaderTest {
 
     @Test
     void returnsNullWhenPropertyIsNotAnnotated() throws NoSuchFieldException {
-        assertNull(loader.getAdaptiveDatatype(metaPropertyFor("plain"), Duration.class));
+        assertNull(provider.getAdaptiveDatatype(metaPropertyFor("plain"), Duration.class));
     }
 
     @Test
-    void stillHandlesNumberFormatViaSuper() throws NoSuchFieldException {
-        Datatype<?> datatype = loader.getAdaptiveDatatype(metaPropertyFor("amount"), Double.class);
-
-        assertInstanceOf(AdaptiveNumberDatatype.class, datatype);
+    void returnsNullWhenAnnotatedPropertyIsNotADuration() throws NoSuchFieldException {
+        assertNull(provider.getAdaptiveDatatype(metaPropertyFor("misannotated"), String.class));
     }
 }

@@ -1,5 +1,6 @@
-## [3.2.0] - 2026-09-23
+## [3.2.0] - 2026-10-12
 
+- Compatibility with Jmix 3.1
 - Add per-field overrides for `shortLabels`, `hoursADay`, and `alwaysDisplayIn` on `<nm:durationField>` (XML attributes and getters/setters)
 - Add `@DurationFormat` entity-attribute annotation, driving both form fields and grid/list columns automatically with no per-screen wiring
 - Add localization support for duration labels, with English translations included

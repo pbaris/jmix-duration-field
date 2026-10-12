@@ -12,7 +12,7 @@ This project uses OpenWolf for context management. Read and follow .wolf/OPENWOL
 
 Duration Field is a Jmix add-on (Java/Gradle) that adds a `java.time.Duration` datatype and a matching `<nm:durationField>` UI component to Jmix Flow-UI applications, rendering durations in Jira-style human-readable form (e.g. `1d 1h`, `1h 30m 15s`) instead of raw numbers.
 
-Group: `gr.netmechanics.jmix`. Current version: `3.0.0` (see `gradle.properties`), tracking Jmix platform `3.0.x`. Past version compatibility (Jmix version → add-on version) is documented in `README.md`.
+Group: `gr.netmechanics.jmix`. Current version: `3.2.0` (see `gradle.properties`), tracking Jmix platform `3.1.x` (built against `3.1.0-RC1`; requires Jmix ≥ 3.1 for the `AdaptiveDatatypeProvider` SPI). Past version compatibility (Jmix version → add-on version) is documented in `README.md`.
 
 ## Build commands
 
@@ -43,12 +43,15 @@ Two Gradle subprojects, wired together in `settings.gradle` (build files are nam
 6. **`DurationFieldConfiguration`** (`.../DurationFieldConfiguration.java`) — the module's `@Configuration`, annotated `@JmixModule(dependsOn = FlowuiConfiguration.class)`, registers the component/loader pair via `ComponentRegistrationBuilder` and loads `module.properties`.
 7. **`StudioComponents`** (`.../kit/StudioComponents.java`) — `@StudioUiKit` metadata (`@StudioComponent`/`@StudioProperty`) that makes `durationField` appear in Jmix Studio's component palette and property inspector, mirroring the same XML attributes the loader handles.
 8. **`ui.xsd`** (`duration-field/src/main/resources/ui.xsd`) — XML schema for the `nm:` namespace (`http://schemas.netmechanics.gr/jmix/ui`) used to validate/autocomplete `<nm:durationField>` in view XML.
-9. **`DurationFieldAutoConfiguration`** (in `duration-field-starter`) — Spring Boot `@AutoConfiguration` that imports `DurationFieldConfiguration`, registered via `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`. This is the actual entry point when a consuming app adds the `duration-field-starter` dependency.
+9. **`DurationFormatDatatypeProvider`** (`.../metamodel/DurationFormatDatatypeProvider.java`) — `AdaptiveDatatypeProvider` bean (Jmix 3.1 SPI) that gives `@DurationFormat`-annotated `Duration` attributes a per-property `AdaptiveDurationDatatype` at metamodel load time, so forms and grids agree.
+10. **`DurationFieldAutoConfiguration`** (in `duration-field-starter`) — Spring Boot `@AutoConfiguration` that imports `DurationFieldConfiguration`, registered via `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`. This is the actual entry point when a consuming app adds the `duration-field-starter` dependency.
 
 When changing parsing/formatting rules, `DurationFormatter` is the single source of truth used by both display (`DurationDatatype.format`) and DB round-tripping is separate (`DurationConverter` always uses raw millis, unaffected by label formatting).
 
 ## Configuration properties
 
-- `jmix.durationField.shortLabels` (boolean, default `true`) — read by `DurationDatatype`; also exposed as a `shortLabels` XML attribute on the component itself (loader currently does not read a per-instance override for it — check `DurationFieldLoader`/`DurationField` before assuming per-field override works).
-- `jmix.durationField.hoursADay` (double, default `8`) — working hours in a day; drives the day/week/month/year breakdown in both `DurationFormatter.format` and `.parse`. Global only, no per-field override.
-- `jmix.durationField.alwaysDisplayIn` (string, default unset) — when set (e.g. `days`, `hours`; same aliases `DurationUnit.fromAlias` accepts, case-insensitive), forces `format()` to render the whole duration as a single decimal number in that unit instead of the multi-part breakdown. Global only, no per-field override. Does not affect `parse()` — input is still typed as multi-unit values (e.g. `"30h"`).
+All three settings resolve with the same precedence: **`<nm:durationField>` XML attribute / `DurationField` setter → `@DurationFormat` on the bound entity attribute → global `jmix.durationField.*` property**. The loader reads `shortLabels`, `hoursADay`, and `alwaysDisplayIn` per field; the `@DurationFormat` tier applies automatically to bound fields and to grid/list columns (via `DurationFormatDatatypeProvider`).
+
+- `jmix.durationField.shortLabels` (boolean, default `true`) — short (`1d 1h`) vs long (`1 day 1 hour`) labels. Read by `DurationDatatype`.
+- `jmix.durationField.hoursADay` (double, default `8`) — working hours in a day; drives the day/week/month/year breakdown in both `DurationFormatter.format` and `.parse`.
+- `jmix.durationField.alwaysDisplayIn` (string, default unset) — when set (e.g. `days`, `hours`; same aliases `DurationUnit.fromAlias` accepts, case-insensitive), forces `format()` to render the whole duration as a single decimal number in that unit instead of the multi-part breakdown. Does not affect `parse()` — input is still typed as multi-unit values (e.g. `"30h"`).
