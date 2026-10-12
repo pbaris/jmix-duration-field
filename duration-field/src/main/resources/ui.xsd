@@ -21,6 +21,9 @@
 				<xs:attribute name="minLength" type="xs:integer"/>
 				<xs:attribute name="clearButtonVisible" type="xs:boolean"/>
 				<xs:attribute name="themeNames" type="layout:textFieldThemeNames"/>
+				<xs:attribute name="shortLabels" type="xs:boolean"/>
+				<xs:attribute name="hoursADay" type="xs:double"/>
+				<xs:attribute name="alwaysDisplayIn" type="xs:string"/>
 
 				<xs:attributeGroup ref="layout:hasTitle"/>
 				<xs:attributeGroup ref="layout:hasPlaceholder"/>

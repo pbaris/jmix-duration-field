@@ -5,8 +5,10 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 
 /**
  * Formats a {@link Duration} into a human-readable string and parses strings back into Durations,
@@ -104,7 +106,27 @@ public final class DurationFormatter {
      * @return a human-readable string, or "0ms" / "0 milliseconds" for zero / negative durations
      */
     public static String format(final Duration duration, final boolean shortLabels, final double hoursADay,
-                                 final DurationUnit alwaysDisplayIn) {
+                                final DurationUnit alwaysDisplayIn) {
+        return format(duration, shortLabels, hoursADay, alwaysDisplayIn, null);
+    }
+
+    /**
+     * Formats a {@link Duration}, resolving unit label text via {@code labelResolver} when provided
+     * (e.g. a localized message-bundle lookup) instead of the built-in English text.
+     *
+     * @param duration       the duration to format; must not be {@code null}
+     * @param shortLabels    {@code true} for short labels, {@code false} for full words
+     * @param hoursADay      working hours in a day (e.g. 7.5); drives the day/week/month/year breakdown
+     * @param alwaysDisplayIn when non-{@code null}, the single unit to always render the duration in;
+     *                        when {@code null}, the usual multi-part breakdown is used
+     * @param labelResolver  resolves a unit's message key (see {@link DurationUnit#shortKey()} /
+     *                       {@link DurationUnit#longKey(boolean)}) to localized text; may be
+     *                       {@code null} to use the default English text
+     * @return a human-readable string, or "0ms" / "0 milliseconds" for zero / negative durations
+     */
+    public static String format(final Duration duration, final boolean shortLabels, final double hoursADay,
+                                @Nullable final DurationUnit alwaysDisplayIn,
+                                @Nullable final Function<String, String> labelResolver) {
         if (duration == null) {
             return "";
         }
@@ -116,10 +138,10 @@ public final class DurationFormatter {
         }
 
         if (alwaysDisplayIn != null) {
-            return formatSingleUnit(totalMillis, alwaysDisplayIn, shortLabels, hoursADay);
+            return formatSingleUnit(totalMillis, alwaysDisplayIn, shortLabels, hoursADay, labelResolver);
         }
 
-        return formatBreakdown(totalMillis, shortLabels, hoursADay);
+        return formatBreakdown(totalMillis, shortLabels, hoursADay, labelResolver);
     }
 
     /**
@@ -168,7 +190,8 @@ public final class DurationFormatter {
     /**
      * Builds the default multi-part breakdown, e.g. "1d 1h".
      */
-    private static String formatBreakdown(final long totalMillis, final boolean shortLabels, final double hoursADay) {
+    private static String formatBreakdown(final long totalMillis, final boolean shortLabels, final double hoursADay,
+                                          @Nullable final Function<String, String> labelResolver) {
         List<String> parts = new ArrayList<>();
         long remaining = totalMillis;
 
@@ -180,7 +203,7 @@ public final class DurationFormatter {
             remaining %= divisor;
 
             if (value > 0) {
-                parts.add(unit.label(value, shortLabels));
+                parts.add(unit.label(value, shortLabels, labelResolver));
             }
         }
 
@@ -192,7 +215,7 @@ public final class DurationFormatter {
      * Rounded HALF_UP to 2 decimal places, with trailing zeros stripped.
      */
     private static String formatSingleUnit(final long totalMillis, final DurationUnit unit, final boolean shortLabels,
-                                            final double hoursADay) {
+                                           final double hoursADay, @Nullable final Function<String, String> labelResolver) {
         long divisor = millisPerUnit(unit, hoursADay);
         BigDecimal value = BigDecimal.valueOf(totalMillis)
             .divide(BigDecimal.valueOf(divisor), 2, RoundingMode.HALF_UP)
@@ -200,7 +223,7 @@ public final class DurationFormatter {
 
         String numericValue = value.scale() < 0 ? value.setScale(0).toPlainString() : value.toPlainString();
 
-        return unit.label(numericValue, shortLabels);
+        return unit.label(numericValue, shortLabels, labelResolver);
     }
 
     /**
@@ -208,15 +231,24 @@ public final class DurationFormatter {
      */
     private static long millisPerUnit(final DurationUnit unit, final double hoursADay) {
         switch (unit) {
-            case MILLISECONDS: return MILLIS_IN_MILLISECOND;
-            case SECONDS: return MILLIS_IN_SECOND;
-            case MINUTES: return MILLIS_IN_MINUTE;
-            case HOURS: return MILLIS_IN_HOUR;
-            case DAYS: return Math.round(hoursADay * MILLIS_IN_HOUR);
-            case WEEKS: return Math.round(DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
-            case MONTHS: return Math.round(WEEKS_PER_MONTH * DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
-            case YEARS: return Math.round(MONTHS_PER_YEAR * WEEKS_PER_MONTH * DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
-            default: throw new IllegalStateException("Unhandled unit: " + unit);
+            case MILLISECONDS:
+                return MILLIS_IN_MILLISECOND;
+            case SECONDS:
+                return MILLIS_IN_SECOND;
+            case MINUTES:
+                return MILLIS_IN_MINUTE;
+            case HOURS:
+                return MILLIS_IN_HOUR;
+            case DAYS:
+                return Math.round(hoursADay * MILLIS_IN_HOUR);
+            case WEEKS:
+                return Math.round(DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
+            case MONTHS:
+                return Math.round(WEEKS_PER_MONTH * DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
+            case YEARS:
+                return Math.round(MONTHS_PER_YEAR * WEEKS_PER_MONTH * DAYS_PER_WEEK * hoursADay * MILLIS_IN_HOUR);
+            default:
+                throw new IllegalStateException("Unhandled unit: " + unit);
         }
     }
 }
