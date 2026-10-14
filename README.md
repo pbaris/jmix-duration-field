@@ -142,9 +142,9 @@ The full precedence, most to least specific:
 Duration labels (both short — `d`, `h`, `m` — and long — `day`, `hour`, `minute`) are fully localizable through Jmix's standard message bundles. The add-on ships English, French, and Greek translations out of the box. To add or override a language, define the same keys in your own app under `messages_<locale>.properties` in package `gr/netmechanics/jmix/df/`:
 
 ```properties
-durationUnit.DAYS.short = d
-durationUnit.DAYS.long = day
-durationUnit.DAYS.long.plural = days
+gr.netmechanics.jmix.df/durationUnit.DAYS.short = d
+gr.netmechanics.jmix.df/durationUnit.DAYS.long = day
+gr.netmechanics.jmix.df/durationUnit.DAYS.long.plural = days
 ```
 
 Each of the eight units (`MILLISECONDS`, `SECONDS`, `MINUTES`, `HOURS`, `DAYS`, `WEEKS`, `MONTHS`, `YEARS`) has a `.short` key and `.long`/`.long.plural` keys. Remember to also list the locale in `jmix.core.available-locales` so users can actually select it. Parsing user input stays locale-independent (English/short aliases only, e.g. `2d`, `3 weeks`) — only the displayed labels are localized.
